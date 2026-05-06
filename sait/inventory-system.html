@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StockFlow — Облік товарів</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    /* ===================== CSS VARIABLES ===================== */
+    :root {
+      --bg:        #0d0f14;
+      --surface:   #141720;
+      --card:      #1b1f2e;
+      --border:    #252a3a;
+      --accent:    #4fffb0;
+      --accent2:   #7c6dff;
+      --warn:      #ff6b6b;
+      --text:      #e8eaf2;
+      --muted:     #6b7280;
+      --radius:    12px;
+      --font-head: 'Syne', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    /* ===================== RESET & BASE ===================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ===================== BACKGROUND MESH ===================== */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 80% 10%, rgba(76,255,176,.07) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 10% 90%, rgba(124,109,255,.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ===================== LAYOUT ===================== */
+    .wrapper { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; padding: 0 20px 60px; }
+
+    /* ===================== HEADER ===================== */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 28px 0 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+
+    .logo h1 {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: -0.5px;
+    }
+
+    .logo span { color: var(--accent); }
+
+    .header-stats {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .stat-pill {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .stat-pill .label { color: var(--muted); }
+    .stat-pill .val { color: var(--accent); font-weight: 500; }
+
+    /* ===================== CONTROLS BAR ===================== */
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    input[type="text"], input[type="number"], select {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      outline: none;
+      transition: border-color .2s;
+      width: 100%;
+    }
+
+    .search-wrap input { padding-left: 40px; }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79,255,176,.08);
+    }
+
+    select option { background: var(--card); }
+
+    /* ===================== BUTTONS ===================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: none;
+      border-radius: var(--radius);
+      padding: 10px 18px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .18s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0d0f14;
+    }
+    .btn-primary:hover { background: #3de89e; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(79,255,176,.3); }
+
+    .btn-ghost {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    .btn-danger {
+      background: rgba(255,107,107,.12);
+      color: var(--warn);
+      border: 1px solid rgba(255,107,107,.25);
+    }
+    .btn-danger:hover { background: rgba(255,107,107,.22); }
+
+    .btn-edit {
+      background: rgba(124,109,255,.12);
+      color: var(--accent2);
+      border: 1px solid rgba(124,109,255,.25);
+    }
+    .btn-edit:hover { background: rgba(124,109,255,.22); }
+
+    .btn-icon { padding: 8px; }
+
+    /* ===================== TABLE ===================== */
+    .table-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead tr {
+      background: rgba(255,255,255,.03);
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      padding: 14px 16px;
+      text-align: left;
+      font-family: var(--font-head);
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 13px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      vertical-align: middle;
+    }
+
+    tbody tr {
+      transition: background .15s;
+    }
+
+    tbody tr:hover {
+      background: rgba(255,255,255,.025);
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+
+    .id-badge {
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--surface);
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .category-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .cat-food   { background: rgba(255,196,77,.12); color: #ffc44d; border: 1px solid rgba(255,196,77,.25); }
+    .cat-tech   { background: rgba(124,109,255,.12); color: #a59cff; border: 1px solid rgba(124,109,255,.25); }
+    .cat-other  { background: rgba(107,114,128,.12); color: var(--muted); border: 1px solid var(--border); }
+
+    .price-cell { color: var(--accent); font-weight: 500; }
+    .qty-cell   { color: var(--text); }
+    .qty-low    { color: var(--warn); }
+    .total-cell { color: var(--accent2); font-weight: 500; }
+
+    .actions-cell { display: flex; gap: 8px; }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state p { font-family: var(--font-head); font-size: 16px; margin-bottom: 6px; color: var(--text); }
+    .empty-state small { font-size: 12px; }
+
+    /* ===================== SUMMARY CARD ===================== */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    .summary-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .summary-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .summary-card.green::before { background: linear-gradient(90deg, var(--accent), transparent); }
+    .summary-card.purple::before { background: linear-gradient(90deg, var(--accent2), transparent); }
+    .summary-card.yellow::before { background: linear-gradient(90deg, #ffc44d, transparent); }
+    .summary-card.red::before { background: linear-gradient(90deg, var(--warn), transparent); }
+
+    .summary-card .s-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; }
+    .summary-card .s-val { font-family: var(--font-head); font-size: 26px; font-weight: 800; }
+    .summary-card.green .s-val { color: var(--accent); }
+    .summary-card.purple .s-val { color: var(--accent2); }
+    .summary-card.yellow .s-val { color: #ffc44d; }
+    .summary-card.red .s-val { color: var(--warn); }
+
+    /* ===================== MODAL ===================== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 480px;
+      padding: 32px;
+      animation: modalIn .25s ease;
+      position: relative;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(.95) translateY(10px); }
+      to   { opacity: 1; transform: scale(1)  translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .modal-header h2 {
+      font-family: var(--font-head);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      padding: 4px;
+      border-radius: 6px;
+      transition: color .15s;
+    }
+
+    .modal-close:hover { color: var(--text); }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+      justify-content: flex-end;
+    }
+
+    /* ===================== TOAST ===================== */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 13px;
+      animation: toastIn .3s ease;
+      min-width: 250px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.4);
+    }
+
+    .toast.error { border-left-color: var(--warn); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(30px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ===================== SCROLLBAR ===================== */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* ===================== RESPONSIVE ===================== */
+    @media (max-width: 768px) {
+      .summary-grid { grid-template-columns: 1fr 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .full { grid-column: 1; }
+      th:nth-child(5), td:nth-child(5) { display: none; }
+      header { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (max-width: 480px) {
+      .header-stats { gap: 10px; }
+      .stat-pill { font-size: 11px; padding: 6px 12px; }
+      th:nth-child(4), td:nth-child(4) { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">📦</div>
+      <h1>Stock<span>Flow</span></h1>
+    </div>
+    <div class="header-stats">
+      <div class="stat-pill">
+        <span class="label">Позицій:</span>
+        <span class="val" id="stat-count">0</span>
+      </div>
+      <div class="stat-pill">
+        <span class="label">Загальна вартість:</span>
+        <span class="val" id="stat-total">₴0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid">
+    <div class="summary-card green">
+      <div class="s-label">Всього товарів</div>
+      <div class="s-val" id="sum-total">0</div>
+    </div>
+    <div class="summary-card purple">
+      <div class="s-label">Загальна вартість</div>
+      <div class="s-val" id="sum-cost">₴0</div>
+    </div>
+    <div class="summary-card yellow">
+      <div class="s-label">Категорій</div>
+      <div class="s-val" id="sum-cats">0</div>
+    </div>
+    <div class="summary-card red">
+      <div class="s-label">Мало на складі (&lt;5)</div>
+      <div class="s-val" id="sum-low">0</div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="search-wrap">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" id="search" placeholder="Пошук за назвою або категорією…" oninput="renderTable()"/>
+    </div>
+    <select id="filter-cat" onchange="renderTable()">
+      <option value="">Всі категорії</option>
+      <option value="food">🍎 Продукти</option>
+      <option value="tech">💻 Техніка</option>
+      <option value="other">📦 Інше</option>
+    </select>
+    <select id="sort-price" onchange="renderTable()">
+      <option value="">Без сортування</option>
+      <option value="asc">Ціна ↑</option>
+      <option value="desc">Ціна ↓</option>
+    </select>
+    <button class="btn btn-primary" onclick="openModal()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Додати товар
+    </button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Назва</th>
+          <th>Категорія</th>
+          <th>Ціна</th>
+          <th>Кількість</th>
+          <th>Сума</th>
+          <th>Дії</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Новий товар</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="field full">
+        <label>Назва товару *</label>
+        <input type="text" id="f-name" placeholder="Наприклад: iPhone 15"/>
+      </div>
+      <div class="field">
+        <label>Категорія *</label>
+        <select id="f-cat">
+          <option value="food">🍎 Продукти</option>
+          <option value="tech">💻 Техніка</option>
+          <option value="other">📦 Інше</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Ціна (₴) *</label>
+        <input type="number" id="f-price" placeholder="0.00" min="0" step="0.01"/>
+      </div>
+      <div class="field">
+        <label>Кількість *</label>
+        <input type="number" id="f-qty" placeholder="0" min="0"/>
+      </div>
+      <!-- Поле лише для FoodProduct -->
+      <div class="field full" id="field-expiry" style="display:none">
+        <label>Термін придатності</label>
+        <input type="text" id="f-expiry" placeholder="наприклад: 2025-12-31"/>
+      </div>
+      <!-- Поле лише для TechProduct -->
+      <div class="field full" id="field-warranty" style="display:none">
+        <label>Гарантія (місяців)</label>
+        <input type="number" id="f-warranty" placeholder="12" min="0"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Скасувати</button>
+      <button class="btn btn-primary" onclick="saveProduct()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M5 13l4 4L19 7"/>
+        </svg>
+        <span id="btn-save-label">Зберегти</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toasts"></div>
+
+<script>
+/* ================================================================
+   STOCKFLOW — OOP Inventory Management System
+   Архітектура: ES6 Classes, Inheritance, Encapsulation, Polymorphism
+   Зберігання: LocalStorage
+   ================================================================ */
+
+// ─────────────────────────────────────────────
+// БАЗОВИЙ КЛАС: Product (інкапсуляція через #)
+// ─────────────────────────────────────────────
+class Product {
+  // Приватні поля (інкапсуляція)
+  #id;
+  #name;
+  #category;
+  #price;
+  #quantity;
+
+  constructor(id, name, category, price, quantity) {
+    this.#id       = id;
+    this.#name     = name;
+    this.#category = category;
+    this.#price    = parseFloat(price);
+    this.#quantity = parseInt(quantity);
+  }
+
+  // ── Гетери ──
+  get id()       { return this.#id; }
+  get name()     { return this.#name; }
+  get category() { return this.#category; }
+  get price()    { return this.#price; }
+  get quantity() { return this.#quantity; }
+
+  // ── Сетери з валідацією ──
+  set name(v)     { if (v?.trim()) this.#name = v.trim(); }
+  set price(v)    { if (!isNaN(v) && v >= 0) this.#price = parseFloat(v); }
+  set quantity(v) { if (!isNaN(v) && v >= 0) this.#quantity = parseInt(v); }
+  set category(v) { this.#category = v; }
+
+  // Поліморфний метод — базова реалізація
+  getDescription() {
+    return `${this.#name} (${this.#category})`;
+  }
+
+  // Загальна вартість позиції
+  getTotalValue() {
+    return this.#price * this.#quantity;
+  }
+
+  // Серіалізація для LocalStorage
+  toJSON() {
+    return {
+      type:     'product',
+      id:       this.#id,
+      name:     this.#name,
+      category: this.#category,
+      price:    this.#price,
+      quantity: this.#quantity,
+    };
+  }
+}
+
+// ─────────────────────────────────────────────
+// КЛАС FoodProduct — наслідування від Product
+// ─────────────────────────────────────────────
+class FoodProduct extends Product {
+  #expiryDate;
+
+  constructor(id, name, price, quantity, expiryDate = '') {
+    super(id, name, 'food', price, quantity);
+    this.#expiryDate = expiryDate;
+  }
+
+  get expiryDate() { return this.#expiryDate; }
+  set expiryDate(v) { this.#expiryDate = v; }
+
+  // Поліморфізм: переоприлюднення методу
+  getDescription() {
+    const exp = this.#expiryDate ? ` | до ${this.#expiryDate}` : '';
+    return `🍎 ${this.name}${exp}`;
+  }
+
+  toJSON() {
+    return { ...super.toJSON(), type: 'food', expiryDate: this.#expiryDate };
+  }
+}
+
+// ─────────────────────────────────────────────
+// КЛАС TechProduct — наслідування від Product
+// ─────────────────────────────────────────────
+class TechProduct extends Product {
+  #warrantyMonths;
+
+  constructor(id, name, price, quantity, warrantyMonths = 0) {
+    super(id, name, 'tech', price, quantity);
+    this.#warrantyMonths = parseInt(warrantyMonths) || 0;
+  }
+
+  get warrantyMonths() { return this.#warrantyMonths; }
+  set warrantyMonths(v) { if (!isNaN(v) && v >= 0) this.#warrantyMonths = parseInt(v); }
+
+  // Поліморфізм
+  getDescription() {
+    const w = this.#warrantyMonths ? ` | гарантія ${this.#warrantyMonths} міс.` : '';
+    return `💻 ${this.name}${w}`;
+  }
+
+  toJSON() {
+    return { ...super.toJSON(), type: 'tech', warrantyMonths: this.#warrantyMonths };
+  }
+}
+
+// ─────────────────────────────────────────────
+// КЛАС Inventory — управління товарами
+// ─────────────────────────────────────────────
+class Inventory {
+  #items = [];
+  #storageKey = 'stockflow_inventory';
+
+  constructor() {
+    this.#load();
+  }
+
+  // ── Завантаження з LocalStorage ──
+  #load() {
+    try {
+      const raw = localStorage.getItem(this.#storageKey);
+      if (!raw) return;
+      const arr = JSON.parse(raw);
+      this.#items = arr.map(d => Inventory.#deserialize(d));
+    } catch(e) {
+      console.error('Помилка завантаження:', e);
+      this.#items = [];
+    }
+  }
+
+  // ── Збереження у LocalStorage ──
+  #save() {
+    localStorage.setItem(this.#storageKey, JSON.stringify(this.#items.map(p => p.toJSON())));
+  }
+
+  // ── Відновлення об'єктів зі збереженого JSON ──
+  static #deserialize(d) {
+    if (d.type === 'food') return new FoodProduct(d.id, d.name, d.price, d.quantity, d.expiryDate);
+    if (d.type === 'tech') return new TechProduct(d.id, d.name, d.price, d.quantity, d.warrantyMonths);
+    return new Product(d.id, d.name, d.category, d.price, d.quantity);
+  }
+
+  // ── Генерація унікального ID ──
+  #genId() {
+    return 'P' + Date.now().toString(36).toUpperCase().slice(-5);
+  }
+
+  // ── Додати товар ──
+  addProduct({ name, category, price, quantity, expiryDate, warrantyMonths }) {
+    if (!name?.trim()) throw new Error('Назва обовʼязкова');
+    if (isNaN(price) || price < 0) throw new Error('Невірна ціна');
+    if (isNaN(quantity) || quantity < 0) throw new Error('Невірна кількість');
+
+    const id = this.#genId();
+    let product;
+
+    if (category === 'food') {
+      product = new FoodProduct(id, name.trim(), price, quantity, expiryDate || '');
+    } else if (category === 'tech') {
+      product = new TechProduct(id, name.trim(), price, quantity, warrantyMonths || 0);
+    } else {
+      product = new Product(id, name.trim(), 'other', price, quantity);
+    }
+
+    this.#items.push(product);
+    this.#save();
+    return product;
+  }
+
+  // ── Оновити товар ──
+  updateProduct(id, data) {
+    const item = this.getById(id);
+    if (!item) throw new Error('Товар не знайдено');
+
+    item.name     = data.name;
+    item.price    = data.price;
+    item.quantity = data.quantity;
+    item.category = data.category;
+
+    if (item instanceof FoodProduct && data.expiryDate !== undefined) {
+      item.expiryDate = data.expiryDate;
+    }
+    if (item instanceof TechProduct && data.warrantyMonths !== undefined) {
+      item.warrantyMonths = data.warrantyMonths;
+    }
+
+    this.#save();
+    return item;
+  }
+
+  // ── Видалити товар ──
+  deleteProduct(id) {
+    const idx = this.#items.findIndex(p => p.id === id);
+    if (idx === -1) throw new Error('Товар не знайдено');
+    const [removed] = this.#items.splice(idx, 1);
+    this.#save();
+    return removed;
+  }
+
+  // ── Отримати за ID ──
+  getById(id) {
+    return this.#items.find(p => p.id === id) || null;
+  }
+
+  // ── Пошук ──
+  search(query) {
+    const q = query.toLowerCase().trim();
+    if (!q) return this.#items;
+    return this.#items.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q)
+    );
+  }
+
+  // ── Фільтрація ──
+  filter({ category = '', sortPrice = '' } = {}) {
+    let list = [...this.#items];
+    if (category) list = list.filter(p => p.category === category);
+    if (sortPrice === 'asc')  list.sort((a, b) => a.price - b.price);
+    if (sortPrice === 'desc') list.sort((a, b) => b.price - a.price);
+    return list;
+  }
+
+  // ── Загальна вартість складу ──
+  getTotalInventoryValue() {
+    return this.#items.reduce((sum, p) => sum + p.getTotalValue(), 0);
+  }
+
+  // ── Кількість унікальних категорій ──
+  getCategoryCount() {
+    return new Set(this.#items.map(p => p.category)).size;
+  }
+
+  // ── Товари з малою кількістю ──
+  getLowStockCount(threshold = 5) {
+    return this.#items.filter(p => p.quantity < threshold).length;
+  }
+
+  get count() { return this.#items.length; }
+}
+
+// ─────────────────────────────────────────────
+// ІНІЦІАЛІЗАЦІЯ
+// ─────────────────────────────────────────────
+const inventory = new Inventory();
+let editingId = null; // null = новий товар, інакше — ID для редагування
+
+// ─────────────────────────────────────────────
+// РЕНДЕР ТАБЛИЦІ
+// ─────────────────────────────────────────────
+function renderTable() {
+  const query   = document.getElementById('search').value;
+  const cat     = document.getElementById('filter-cat').value;
+  const sort    = document.getElementById('sort-price').value;
+
+  // Спочатку пошук, потім фільтр+сортування
+  let results = inventory.search(query);
+
+  if (cat) results = results.filter(p => p.category === cat);
+  if (sort === 'asc')  results.sort((a, b) => a.price - b.price);
+  if (sort === 'desc') results.sort((a, b) => b.price - a.price);
+
+  const tbody = document.getElementById('table-body');
+
+  if (results.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7">
+          <div class="empty-state">
+            <div class="icon">🗃️</div>
+            <p>Товарів не знайдено</p>
+            <small>Спробуйте змінити фільтр або додайте новий товар</small>
+          </div>
+        </td>
+      </tr>`;
+    updateStats();
+    return;
+  }
+
+  tbody.innerHTML = results.map(p => {
+    const catLabel = { food: '🍎 Продукти', tech: '💻 Техніка', other: '📦 Інше' }[p.category] || p.category;
+    const catClass = { food: 'cat-food', tech: 'cat-tech', other: 'cat-other' }[p.category] || 'cat-other';
+    const qtyClass = p.quantity < 5 ? 'qty-low' : 'qty-cell';
+    const total    = p.getTotalValue().toLocaleString('uk-UA', { minimumFractionDigits: 2 });
+    const price    = p.price.toLocaleString('uk-UA', { minimumFractionDigits: 2 });
+
+    return `
+      <tr>
+        <td><span class="id-badge">${p.id}</span></td>
+        <td title="${p.getDescription()}">${p.name}</td>
+        <td><span class="category-badge ${catClass}">${catLabel}</span></td>
+        <td class="price-cell">₴${price}</td>
+        <td class="${qtyClass}">${p.quantity}${p.quantity < 5 ? ' ⚠️' : ''}</td>
+        <td class="total-cell">₴${total}</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-edit btn-icon" onclick="openEdit('${p.id}')" title="Редагувати">
+              ✏️
+            </button>
+            <button class="btn btn-danger btn-icon" onclick="deleteProduct('${p.id}')" title="Видалити">
+              🗑️
+            </button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  updateStats();
+}
+
+// ─────────────────────────────────────────────
+// ОНОВЛЕННЯ СТАТИСТИКИ
+// ─────────────────────────────────────────────
+function updateStats() {
+  const total = inventory.getTotalInventoryValue();
+  const fmt   = v => v.toLocaleString('uk-UA', { minimumFractionDigits: 2 });
+
+  document.getElementById('stat-count').textContent  = inventory.count;
+  document.getElementById('stat-total').textContent  = '₴' + fmt(total);
+  document.getElementById('sum-total').textContent   = inventory.count;
+  document.getElementById('sum-cost').textContent    = '₴' + fmt(total);
+  document.getElementById('sum-cats').textContent    = inventory.getCategoryCount();
+  document.getElementById('sum-low').textContent     = inventory.getLowStockCount();
+}
+
+// ─────────────────────────────────────────────
+// МОДАЛЬНЕ ВІКНО
+// ─────────────────────────────────────────────
+function openModal(id = null) {
+  editingId = id;
+  const overlay = document.getElementById('modal-overlay');
+  document.getElementById('modal-title').textContent    = id ? 'Редагувати товар' : 'Новий товар';
+  document.getElementById('btn-save-label').textContent = id ? 'Оновити' : 'Зберегти';
+
+  if (id) {
+    const p = inventory.getById(id);
+    if (!p) return;
+    document.getElementById('f-name').value  = p.name;
+    document.getElementById('f-cat').value   = p.category;
+    document.getElementById('f-price').value = p.price;
+    document.getElementById('f-qty').value   = p.quantity;
+
+    if (p instanceof FoodProduct) {
+      document.getElementById('f-expiry').value = p.expiryDate || '';
+    }
+    if (p instanceof TechProduct) {
+      document.getElementById('f-warranty').value = p.warrantyMonths || '';
+    }
+  } else {
+    document.getElementById('f-name').value    = '';
+    document.getElementById('f-cat').value     = 'food';
+    document.getElementById('f-price').value   = '';
+    document.getElementById('f-qty').value     = '';
+    document.getElementById('f-expiry').value   = '';
+    document.getElementById('f-warranty').value = '';
+  }
+
+  toggleExtraFields();
+  overlay.classList.add('open');
+}
+
+function openEdit(id) { openModal(id); }
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  editingId = null;
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+// Показ/ховання додаткових полів залежно від категорії
+function toggleExtraFields() {
+  const cat = document.getElementById('f-cat').value;
+  document.getElementById('field-expiry').style.display   = cat === 'food' ? '' : 'none';
+  document.getElementById('field-warranty').style.display = cat === 'tech' ? '' : 'none';
+}
+
+document.getElementById('f-cat').addEventListener('change', toggleExtraFields);
+
+// ─────────────────────────────────────────────
+// ЗБЕРЕЖЕННЯ ТОВАРУ
+// ─────────────────────────────────────────────
+function saveProduct() {
+  const data = {
+    name:           document.getElementById('f-name').value,
+    category:       document.getElementById('f-cat').value,
+    price:          parseFloat(document.getElementById('f-price').value),
+    quantity:       parseInt(document.getElementById('f-qty').value),
+    expiryDate:     document.getElementById('f-expiry').value,
+    warrantyMonths: parseInt(document.getElementById('f-warranty').value) || 0,
+  };
+
+  try {
+    if (editingId) {
+      inventory.updateProduct(editingId, data);
+      toast('✅ Товар оновлено');
+    } else {
+      inventory.addProduct(data);
+      toast('✅ Товар додано');
+    }
+    closeModal();
+    renderTable();
+  } catch(e) {
+    toast('❌ ' + e.message, true);
+  }
+}
+
+// ─────────────────────────────────────────────
+// ВИДАЛЕННЯ
+// ─────────────────────────────────────────────
+function deleteProduct(id) {
+  const p = inventory.getById(id);
+  if (!p) return;
+  if (!confirm(`Видалити «${p.name}»?`)) return;
+
+  try {
+    inventory.deleteProduct(id);
+    toast('🗑️ Товар видалено');
+    renderTable();
+  } catch(e) {
+    toast('❌ ' + e.message, true);
+  }
+}
+
+// ─────────────────────────────────────────────
+// TOAST СПОВІЩЕННЯ
+// ─────────────────────────────────────────────
+function toast(msg, isError = false) {
+  const container = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = 'toast' + (isError ? ' error' : '');
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ─────────────────────────────────────────────
+// ДЕМОНСТРАЦІЙНІ ДАНІ (лише якщо склад порожній)
+// ─────────────────────────────────────────────
+function seedDemoData() {
+  if (localStorage.getItem('stockflow_inventory')) return;
+  const demos = [
+    { name: 'Молоко 2.5%', category: 'food', price: 38.50, quantity: 120, expiryDate: '2025-08-01' },
+    { name: 'Хліб Бородінський', category: 'food', price: 25.00, quantity: 3, expiryDate: '2025-07-05' },
+    { name: 'iPhone 15 Pro', category: 'tech', price: 42999, quantity: 8, warrantyMonths: 24 },
+    { name: 'Samsung Galaxy A55', category: 'tech', price: 18500, quantity: 15, warrantyMonths: 12 },
+    { name: 'Навушники Sony WH-1000XM5', category: 'tech', price: 9200, quantity: 4, warrantyMonths: 12 },
+    { name: 'Ноутбук ASUS VivoBook', category: 'tech', price: 28000, quantity: 6, warrantyMonths: 24 },
+    { name: 'Сир Гауда', category: 'food', price: 210, quantity: 50, expiryDate: '2025-09-30' },
+    { name: 'Картриджі для принтера', category: 'other', price: 450, quantity: 20 },
+    { name: 'Кава Lavazza 500г', category: 'food', price: 320, quantity: 2, expiryDate: '2026-01-01' },
+  ];
+  demos.forEach(d => inventory.addProduct(d));
+}
+
+// ─────────────────────────────────────────────
+// СТАРТ
+// ─────────────────────────────────────────────
+seedDemoData();
+renderTable();
+</script>
+</body>
+</html>

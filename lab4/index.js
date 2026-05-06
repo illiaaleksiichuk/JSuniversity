@@ -1,52 +1,70 @@
-function query(collection, ...operations) {
-  // копія колекції (щоб не змінювати оригінал)
-  let result = collection.map((item) => ({ ...item }));
+import * as lib from "./checks.js";
 
-  if (operations.length === 0) return result;
+const friends = [
+  { name: "Alice", gender: "Female", age: 25, email: "alice@example.com" },
+  { name: "Bob", gender: "Male", age: 30, email: "bob@example.com" },
+  { name: "Charlie", gender: "Male", age: 35, email: "charlie@example.com" },
+  { name: "Diana", gender: "Female", age: 40, email: "diana@example.com" },
+];
 
-  // ================= FILTER =================
-  const filterOps = operations.filter((op) => op.type === "filterIn");
+// Test 1
+let original = JSON.stringify(friends);
+lib.query(friends, lib.select("name"));
+console.assert(
+  JSON.stringify(friends) === original,
+  "Test 1 failed: original modified",
+);
 
-  for (let op of filterOps) {
-    result = result.filter((item) => op.values.includes(item[op.field]));
-  }
+// Test 2
+let result = lib.query(friends);
+console.assert(result !== friends, "Test 2 failed: not a copy");
 
-  // ================= SELECT =================
-  const selectOps = operations.filter((op) => op.type === "select");
+// Test 3
+result = lib.query(friends, lib.select("unknown"));
+console.assert(
+  result.every((x) => Object.keys(x).length === 0),
+  "Test 3 failed: unknown field not ignored",
+);
 
-  if (selectOps.length > 0) {
-    // перетин полів
-    let fields = selectOps[0].fields.slice();
+// Test 4
+result = lib.query(friends, lib.select("name", "age"), lib.select("age"));
+console.assert(
+  result.every((x) => Object.keys(x).length === 1 && "age" in x),
+  "Test 4 failed: intersect select",
+);
 
-    for (let i = 1; i < selectOps.length; i++) {
-      fields = fields.filter((f) => selectOps[i].fields.includes(f));
-    }
+// Test 5
+result = lib.query(
+  friends,
+  lib.filterIn("gender", ["Male", "Female"]),
+  lib.filterIn("gender", ["Female"]),
+);
+console.assert(
+  result.length === 2 && result.every((x) => x.gender === "Female"),
+  "Test 5 failed: intersect filter",
+);
 
-    result = result.map((item) => {
-      let newObj = {};
-      for (let field of fields) {
-        if (field in item) {
-          newObj[field] = item[field];
-        }
-      }
-      return newObj;
-    });
-  }
+// Test 6
+result = lib.query(friends, lib.filterIn("nickname", ["Bobby"]));
+console.assert(result.length === 0, "Test 6 failed: nonexistent field");
 
-  return result;
-}
+// Test 7
+result = lib.query(
+  friends,
+  lib.filterIn("age", [30, 35, 40]),
+  lib.select("name", "age"),
+);
 
-function select(...fields) {
-  return {
-    type: "select",
-    fields,
-  };
-}
+console.assert(
+  result.length === 3 && result[0].name === "Bob" && result[2].name === "Diana",
+  "Test 7 failed: order changed",
+);
 
-function filterIn(field, values) {
-  return {
-    type: "filterIn",
-    field,
-    values,
-  };
-}
+// Test 8
+result = lib.query(friends, lib.select("email"));
+console.assert(
+  result.every((x) => Object.keys(x).length === 1 && "email" in x),
+  "Test 8 failed: select only email",
+);
+
+console.log("✅ All extended tests passed!");
