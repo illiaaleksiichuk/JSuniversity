@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ЛР №3 Дата і час</title>
+  </head>
+  <body>
+    <h2>Лабораторна робота №3</h2>
+
+    <button onclick="showDate()">1. Поточна дата</button>
+    <div id="out1"></div>
+
+    <hr />
+
+    <input type="text" id="daysAgo" placeholder="N днів назад" />
+    <button onclick="getDaysAgo()">3. Дата N днів назад</button>
+    <div id="out3"></div>
+
+    <hr />
+
+    <button onclick="getLastDay()">4. Останній день місяця</button>
+    <div id="out4"></div>
+
+    <hr />
+
+    <button onclick="getSeconds()">5. Секунди сьогодні</button>
+    <div id="out5"></div>
+
+    <hr />
+
+    <input type="text" id="date1" placeholder="Дата 1" />
+    <input type="text" id="date2" placeholder="Дата 2" />
+    <button onclick="diffDates()">7. Різниця дат</button>
+    <div id="out7"></div>
+
+    <script src="lab3_lib.js"></script>
+    <script src="lab3.js"></script>
+  </body>
+</html>
