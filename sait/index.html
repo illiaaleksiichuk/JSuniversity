@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StockFlow — Облік товарів</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">📦</div>
+      <h1>Stock<span>Flow</span></h1>
+    </div>
+    <div class="header-stats">
+      <div class="stat-pill">
+        <span class="label">Позицій:</span>
+        <span class="val" id="stat-count">0</span>
+      </div>
+      <div class="stat-pill">
+        <span class="label">Загальна вартість:</span>
+        <span class="val" id="stat-total">₴0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid">
+    <div class="summary-card green">
+      <div class="s-label">Всього товарів</div>
+      <div class="s-val" id="sum-total">0</div>
+    </div>
+    <div class="summary-card purple">
+      <div class="s-label">Загальна вартість</div>
+      <div class="s-val" id="sum-cost">₴0</div>
+    </div>
+    <div class="summary-card yellow">
+      <div class="s-label">Категорій</div>
+      <div class="s-val" id="sum-cats">0</div>
+    </div>
+    <div class="summary-card red">
+      <div class="s-label">Мало на складі (&lt;5)</div>
+      <div class="s-val" id="sum-low">0</div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="search-wrap">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" id="search" placeholder="Пошук за назвою або категорією…" oninput="renderTable()"/>
+    </div>
+    <select id="filter-cat" onchange="renderTable()">
+      <option value="">Всі категорії</option>
+      <option value="food">🍎 Продукти</option>
+      <option value="tech">💻 Техніка</option>
+      <option value="other">📦 Інше</option>
+    </select>
+    <select id="sort-price" onchange="renderTable()">
+      <option value="">Без сортування</option>
+      <option value="asc">Ціна ↑</option>
+      <option value="desc">Ціна ↓</option>
+    </select>
+    <button class="btn btn-primary" onclick="openModal()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Додати товар
+    </button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Назва</th>
+          <th>Категорія</th>
+          <th>Ціна</th>
+          <th>Кількість</th>
+          <th>Сума</th>
+          <th>Дії</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Новий товар</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="field full">
+        <label>Назва товару *</label>
+        <input type="text" id="f-name" placeholder="Наприклад: iPhone 15"/>
+      </div>
+      <div class="field">
+        <label>Категорія *</label>
+        <select id="f-cat">
+          <option value="food">🍎 Продукти</option>
+          <option value="tech">💻 Техніка</option>
+          <option value="other">📦 Інше</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Ціна (₴) *</label>
+        <input type="number" id="f-price" placeholder="0.00" min="0" step="0.01"/>
+      </div>
+      <div class="field">
+        <label>Кількість *</label>
+        <input type="number" id="f-qty" placeholder="0" min="0"/>
+      </div>
+      <!-- Поле лише для FoodProduct -->
+      <div class="field full" id="field-expiry" style="display:none">
+        <label>Термін придатності</label>
+        <input type="text" id="f-expiry" placeholder="наприклад: 2025-12-31"/>
+      </div>
+      <!-- Поле лише для TechProduct -->
+      <div class="field full" id="field-warranty" style="display:none">
+        <label>Гарантія (місяців)</label>
+        <input type="number" id="f-warranty" placeholder="12" min="0"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Скасувати</button>
+      <button class="btn btn-primary" onclick="saveProduct()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M5 13l4 4L19 7"/>
+        </svg>
+        <span id="btn-save-label">Зберегти</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toasts"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
